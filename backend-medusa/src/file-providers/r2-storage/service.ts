@@ -93,6 +93,12 @@ class R2FileService extends AbstractFileProviderService {
     this.bucket = bucket
     this.publicUrl = publicUrl
 
+    this.logger?.info?.("[r2-file-provider] Initialized Cloudflare R2 client", {
+      endpoint,
+      bucket,
+      publicUrl: this.publicUrl,
+    })
+
     this.client = new S3Client({
       region: "auto",
       endpoint,
@@ -175,6 +181,14 @@ class R2FileService extends AbstractFileProviderService {
     }
 
     const url = `${this.publicUrl}/${encodeURIComponent(key)}`
+
+    this.logger?.info?.("[r2-file-provider] Uploaded file to R2", {
+      key,
+      bucket: this.bucket,
+      url,
+      contentType,
+      size: fileBuffer.length,
+    })
 
     // Return EXACTLY this format - Medusa requires both key and url
     return {
