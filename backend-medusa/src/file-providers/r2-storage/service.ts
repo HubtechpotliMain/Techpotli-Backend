@@ -118,6 +118,13 @@ class R2FileService extends AbstractFileProviderService {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "No file provided")
     }
 
+    // Ensure we always have a filename – different callers may use different props
+    file.filename =
+      file.filename ||
+      file.originalname ||
+      file.name ||
+      `file-${Date.now()}`
+
     if (!file.filename) {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "No filename provided")
     }

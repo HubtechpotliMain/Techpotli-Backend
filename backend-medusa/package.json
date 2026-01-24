@@ -29,6 +29,7 @@
     "@medusajs/framework": "2.12.5",
     "@medusajs/medusa": "2.12.5",
     "@supabase/supabase-js": "^2.90.1",
+    "razorpay": "^2.9.6",
     "resend": "^6.8.0"
   },
   "devDependencies": {
