@@ -9,7 +9,7 @@ cmds = ["npm ci --no-audit --no-fund"]
 [phases.build]
 cmds = ["npm run build"]
 
-# Railway assigns PORT; Medusa must listen on 0.0.0.0 for healthcheck to succeed
+# Use start script that sets HOST=0.0.0.0 so Railway healthcheck can reach the app
 [start]
-cmd = "HOST=0.0.0.0 npm run start"
+cmd = "node scripts/railway-start.js"
 
