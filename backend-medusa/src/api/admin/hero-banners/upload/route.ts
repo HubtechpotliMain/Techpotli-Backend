@@ -87,17 +87,17 @@ export async function POST(
           // Prepare file object for Medusa File module
           const fileForUpload = {
             filename: fileName || `hero-banner-${Date.now()}.jpg`,
-            content: fileData,
-            contentType: fileMimeType || "image/jpeg",
+            mimeType: fileMimeType || "image/jpeg",
+            // Medusa File module expects base64-encoded content
+            content: fileData.toString("base64"),
+            access: "public" as const,
           }
 
-          // Upload via Medusa File module
-          // createFiles accepts a single file DTO or an array of DTOs.
-          // We pass a single file DTO and rely on the overloaded signature.
+          // Upload via Medusa File module (CreateFileDTO: filename, mimeType, content as base64 string)
           const uploadResult = await fileModuleService.createFiles(fileForUpload)
 
-          // When a single DTO is passed, createFiles returns a single FileDTO
-          if (!uploadResult) {
+          const file = Array.isArray(uploadResult) ? uploadResult[0] : uploadResult
+          if (!file?.url) {
             res.status(500).json({
               message: "File upload failed - no result returned",
             })
@@ -105,11 +105,9 @@ export async function POST(
             return
           }
 
-          const uploaded = uploadResult
-
           res.json({
-            url: uploaded.url,
-            key: uploaded.key || uploaded.id,
+            url: file.url,
+            key: file.id,
           })
           resolve()
         } catch (error) {

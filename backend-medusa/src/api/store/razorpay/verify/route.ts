@@ -12,7 +12,13 @@ export async function POST(
   res: MedusaResponse
 ): Promise<void> {
   try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, cart_id } = req.body
+    const body = (req.body ?? {}) as {
+      razorpay_payment_id?: string
+      razorpay_order_id?: string
+      razorpay_signature?: string
+      cart_id?: string
+    }
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, cart_id } = body
 
     if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
       res.status(400).json({

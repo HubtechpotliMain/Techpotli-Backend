@@ -360,6 +360,7 @@ const HeroBannersPage = () => {
         <Table.Body>
           {banners.length === 0 ? (
             <Table.Row>
+              {/* @ts-expect-error Table.Cell accepts colSpan for empty state row */}
               <Table.Cell colSpan={6} className="text-center py-8">
                 No banners found. Create your first banner!
               </Table.Cell>

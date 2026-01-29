@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { Modules } from "@medusajs/framework/utils"
+import crypto from "crypto"
 
 /**
  * POST /api/webhooks/razorpay
@@ -21,26 +21,28 @@ export async function POST(
       return
     }
 
-    // Get raw body for signature verification
-    const rawBody = JSON.stringify(req.body)
-
-    // Get payment module service
-    const paymentModuleService = req.scope.resolve(Modules.PAYMENT)
-    
-    // Get Razorpay provider
-    const razorpayProvider = paymentModuleService.retrieveProvider("razorpay")
-
-    if (!razorpayProvider) {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
+    if (!webhookSecret) {
       res.status(500).json({
-        error: "Razorpay payment provider not configured",
+        error: "RAZORPAY_WEBHOOK_SECRET is not configured",
       })
       return
     }
 
-    // Verify webhook signature
-    const isValid = razorpayProvider.verifyWebhookSignature(
-      rawBody,
-      razorpaySignature
+    // Verify webhook signature.
+    // Prefer using raw body if available; fallback to JSON stringification.
+    const rawBody =
+      (req as any).rawBody?.toString?.("utf8") ||
+      JSON.stringify(req.body ?? {})
+
+    const expectedSignature = crypto
+      .createHmac("sha256", webhookSecret)
+      .update(rawBody)
+      .digest("hex")
+
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(expectedSignature),
+      Buffer.from(razorpaySignature)
     )
 
     if (!isValid) {
@@ -50,8 +52,9 @@ export async function POST(
       return
     }
 
-    const event = req.body.event
-    const payload = req.body.payload
+    const body = (req.body || {}) as any
+    const event = body.event
+    const payload = body.payload
 
     // Handle different webhook events
     switch (event) {
@@ -83,7 +86,7 @@ export async function POST(
     // Still return 200 to prevent Razorpay from retrying
     res.status(200).json({
       error: "Webhook processing failed",
-      message: error.message,
+      message: error?.message || String(error),
     })
   }
 }
@@ -93,13 +96,11 @@ export async function POST(
  */
 async function handlePaymentCaptured(
   payload: any,
-  scope: any
+  _scope: any
 ): Promise<void> {
   try {
     const payment = payload.payment?.entity
     if (!payment) return
-
-    const paymentModuleService = scope.resolve(Modules.PAYMENT)
 
     // Find payment session by razorpay_payment_id
     // Note: This requires querying payment sessions by metadata
@@ -118,7 +119,7 @@ async function handlePaymentCaptured(
  */
 async function handlePaymentFailed(
   payload: any,
-  scope: any
+  _scope: any
 ): Promise<void> {
   try {
     const payment = payload.payment?.entity
@@ -136,7 +137,7 @@ async function handlePaymentFailed(
  */
 async function handlePaymentAuthorized(
   payload: any,
-  scope: any
+  _scope: any
 ): Promise<void> {
   try {
     const payment = payload.payment?.entity
@@ -154,7 +155,7 @@ async function handlePaymentAuthorized(
  */
 async function handleRefundProcessed(
   payload: any,
-  scope: any
+  _scope: any
 ): Promise<void> {
   try {
     const refund = payload.refund?.entity

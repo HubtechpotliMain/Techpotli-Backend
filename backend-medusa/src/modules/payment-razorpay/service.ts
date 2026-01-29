@@ -19,6 +19,8 @@ import type {
   RetrievePaymentOutput,
   UpdatePaymentInput,
   UpdatePaymentOutput,
+  ProviderWebhookPayload,
+  WebhookActionResult,
 } from "@medusajs/framework/types"
 import {
   AbstractPaymentProvider,
@@ -180,7 +182,7 @@ class RazorpayProviderService extends AbstractPaymentProvider {
           status: payment.status,
           method: payment.method,
           created_at: payment.created_at,
-          captured_at: payment.captured_at,
+          captured: payment.captured,
         },
       }
     } catch (error: any) {
@@ -231,7 +233,7 @@ class RazorpayProviderService extends AbstractPaymentProvider {
             amount: payment.amount,
             currency: payment.currency,
             status: payment.status,
-            captured_at: payment.captured_at,
+            captured: payment.captured,
           },
         }
       }
@@ -239,7 +241,8 @@ class RazorpayProviderService extends AbstractPaymentProvider {
       // Capture the payment
       const capturedPayment = await this.razorpay.payments.capture(
         razorpay_payment_id,
-        payment.amount
+        payment.amount,
+        payment.currency
       )
 
       return {
@@ -250,7 +253,7 @@ class RazorpayProviderService extends AbstractPaymentProvider {
           amount: capturedPayment.amount,
           currency: capturedPayment.currency,
           status: capturedPayment.status,
-          captured_at: capturedPayment.captured_at,
+          captured: capturedPayment.captured,
         },
       }
     } catch (error: any) {
@@ -351,7 +354,7 @@ class RazorpayProviderService extends AbstractPaymentProvider {
           status: payment.status,
           method: payment.method,
           created_at: payment.created_at,
-          captured_at: payment.captured_at,
+          captured: payment.captured,
         },
       }
     } catch (error: any) {
@@ -442,6 +445,17 @@ class RazorpayProviderService extends AbstractPaymentProvider {
     } catch (error) {
       return { status: PaymentSessionStatus.PENDING }
     }
+  }
+
+  /**
+   * Webhook support (optional)
+   * We handle Razorpay webhooks in `src/api/webhooks/razorpay/route.ts`.
+   * This is implemented to satisfy the abstract interface.
+   */
+  async getWebhookActionAndData(
+    _webhookData: ProviderWebhookPayload["payload"]
+  ): Promise<WebhookActionResult> {
+    return { action: "not_supported" }
   }
 
   /**
