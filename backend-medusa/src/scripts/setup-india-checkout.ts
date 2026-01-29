@@ -85,10 +85,12 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
       },
     })
 
-    logger.info("[setup-india-checkout] Region updated", {
-      region_id: indiaRegion.id,
-      payment_providers: desiredPaymentProviders,
-    })
+    logger.info(
+      `[setup-india-checkout] Region updated ${JSON.stringify({
+        region_id: indiaRegion.id,
+        payment_providers: desiredPaymentProviders,
+      })}`
+    )
   } catch (e: any) {
     const message = e?.message || String(e)
 
@@ -110,10 +112,12 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
       },
     })
 
-    logger.info("[setup-india-checkout] Region updated (fallback providers)", {
-      region_id: indiaRegion.id,
-      payment_providers: fallbackProviders,
-    })
+    logger.info(
+      `[setup-india-checkout] Region updated (fallback providers) ${JSON.stringify({
+        region_id: indiaRegion.id,
+        payment_providers: fallbackProviders,
+      })}`
+    )
   }
 
   // -----------------------------
@@ -173,7 +177,7 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
         ],
       },
     })
-    stockLocation = result?.[0]
+    stockLocation = (result as any)?.[0]
   }
 
   if (!stockLocation?.id) {
@@ -233,7 +237,7 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
     ) || fulfillmentSets?.find((fs: any) => fs?.name === "India delivery")
 
   if (!fulfillmentSet?.id) {
-    fulfillmentSet = await fulfillmentModuleService.createFulfillmentSets({
+    fulfillmentSet = (await fulfillmentModuleService.createFulfillmentSets({
       name: "India delivery",
       type: "shipping",
       service_zones: [
@@ -247,7 +251,7 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
           ],
         },
       ],
-    })
+    })) as any
   }
 
   const serviceZoneId =
@@ -266,7 +270,7 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
   // In some setups, a fulfillment set can only be linked to one stock location.
   // If the existing India set is already linked elsewhere, create a dedicated one.
   let effectiveFulfillmentSet = fulfillmentSet as any
-  let effectiveServiceZoneId = serviceZoneId
+  let effectiveServiceZoneId: string = serviceZoneId
 
   try {
     await link.create({
@@ -298,7 +302,7 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
       })
 
       effectiveFulfillmentSet = created
-      effectiveServiceZoneId =
+      const maybeCreatedServiceZoneId =
         created?.service_zones?.[0]?.id ||
         created?.service_zones?.find?.((sz: any) =>
           (sz?.geo_zones || []).some(
@@ -306,9 +310,10 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
           )
         )?.id
 
-      if (!effectiveServiceZoneId) {
+      if (!maybeCreatedServiceZoneId) {
         throw new Error("[setup-india-checkout] Missing service zone for India (created set)")
       }
+      effectiveServiceZoneId = maybeCreatedServiceZoneId as string
 
       await link.create({
         [Modules.STOCK_LOCATION]: { stock_location_id: stockLocation.id },
@@ -428,17 +433,21 @@ export default async function setupIndiaCheckout({ container }: ExecArgs) {
         },
       ],
     })
-    logger.info("[setup-india-checkout] Created shipping options for India", {
-      region_id: indiaRegion.id,
-      service_zone_id: effectiveServiceZoneId,
-      shipping_profile_id: shippingProfile.id,
-    })
+    logger.info(
+      `[setup-india-checkout] Created shipping options for India ${JSON.stringify({
+        region_id: indiaRegion.id,
+        service_zone_id: effectiveServiceZoneId,
+        shipping_profile_id: shippingProfile.id,
+      })}`
+    )
   } else {
-    logger.info("[setup-india-checkout] Shipping options already exist for India", {
-      region_id: indiaRegion.id,
-      service_zone_id: effectiveServiceZoneId,
-      shipping_profile_id: shippingProfile.id,
-    })
+    logger.info(
+      `[setup-india-checkout] Shipping options already exist for India ${JSON.stringify({
+        region_id: indiaRegion.id,
+        service_zone_id: effectiveServiceZoneId,
+        shipping_profile_id: shippingProfile.id,
+      })}`
+    )
   }
 
   logger.info("[setup-india-checkout] Done.")

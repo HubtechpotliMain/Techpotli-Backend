@@ -9,7 +9,8 @@ export async function POST(
   req: MedusaRequest,
   res: MedusaResponse
 ) {
-  const { email, password } = req.body
+  const body = (req.body ?? {}) as { email?: string; password?: string }
+  const { email, password } = body
 
   if (!email || !password) {
     return res.status(400).json({
