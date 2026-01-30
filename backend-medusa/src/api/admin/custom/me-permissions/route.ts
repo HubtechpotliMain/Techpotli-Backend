@@ -7,8 +7,10 @@ import { canAccessUsersAndDeveloper } from "../../../utils/can-access-users-deve
  * Returns whether the current admin can access Users and Developer sections.
  * Use this in the dashboard to hide/show the Users and Developer menu items.
  */
+type AdminRequest = MedusaRequest & { auth_context?: { actor_id?: string } }
+
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const actorId = req.auth_context?.actor_id
+  const actorId = (req as AdminRequest).auth_context?.actor_id
   if (!actorId) {
     return res.status(200).json({ can_access_users_developer: false })
   }

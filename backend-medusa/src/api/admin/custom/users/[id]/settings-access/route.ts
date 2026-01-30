@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { Modules } from "@medusajs/framework/utils"
+import { Modules, MedusaError } from "@medusajs/framework/utils"
 import { canAccessUsersAndDeveloper } from "../../../../../utils/can-access-users-developer"
-import { MedusaError } from "@medusajs/framework/utils"
+
+type AdminRequest = MedusaRequest & { auth_context?: { actor_id?: string } }
 
 /**
  * PATCH /admin/custom/users/:id/settings-access
@@ -10,7 +11,7 @@ import { MedusaError } from "@medusajs/framework/utils"
  * Body: { can_access_users_developer: true | false }
  */
 export async function PATCH(req: MedusaRequest, res: MedusaResponse) {
-  const callerId = req.auth_context?.actor_id
+  const callerId = (req as AdminRequest).auth_context?.actor_id
   if (!callerId) {
     return res.status(401).json({
       message: "Authentication required",
