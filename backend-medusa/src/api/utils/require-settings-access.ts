@@ -17,6 +17,9 @@ const USERS_AND_DEVELOPER_PATH_PREFIXES = [
   "/admin/index",
 ]
 
+/** Invitees (not logged in) must be able to POST here to create their account. Do not require settings access. */
+const INVITE_ACCEPT_PATH_PREFIX = "/admin/invites/accept"
+
 const adminAuth = authenticate("user", ["bearer", "session", "api-key"])
 
 /**
@@ -36,6 +39,9 @@ export async function requireSettingsAccess(
     (req.originalUrl ? req.originalUrl.split("?")[0] : "") ??
     req.path ??
     ""
+  if (path.startsWith(INVITE_ACCEPT_PATH_PREFIX)) {
+    return next()
+  }
   const isRestrictedRoute = USERS_AND_DEVELOPER_PATH_PREFIXES.some((prefix) =>
     path.startsWith(prefix)
   )
