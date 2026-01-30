@@ -14,9 +14,10 @@ export default async function passwordResetHandler({
   const { entity_id: email, token, actor_type } = data
   const notificationModuleService = container.resolve(Modules.NOTIFICATION)
 
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:9000"
+  // In production set BACKEND_URL and FRONTEND_URL so reset links point to your public URLs, not localhost.
+  const backendUrl = (process.env.BACKEND_URL || "http://localhost:9000").replace(/\/$/, "")
   const adminPath = "/app"
-  const storefrontUrl = process.env.FRONTEND_URL || "http://localhost:3000"
+  const storefrontUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "")
 
   let urlPrefix: string
   if (actor_type === "customer") {
