@@ -135,22 +135,28 @@ async function runDefaultRegister(req: MedusaRequest, res: MedusaResponse) {
   }
   const { success, error, authIdentity } = await authService.register(auth_provider, authData)
   if (success && authIdentity) {
-    const { generateJwtTokenForAuthIdentity } = await import(
-      "@medusajs/medusa/dist/api/auth/utils/generate-jwt-token"
-    )
-    const token = await generateJwtTokenForAuthIdentity(
-      {
-        authIdentity: authIdentity as Parameters<typeof generateJwtTokenForAuthIdentity>[0]["authIdentity"],
-        actorType: actor_type,
-        authProvider: auth_provider,
-        container: req.scope,
-      },
-      {
-        secret: config.projectConfig.http.jwtSecret,
-        expiresIn: config.projectConfig.http.jwtExpiresIn,
-        options: config.projectConfig.http.jwtOptions ?? {},
-      }
-    )
+    const identity = authIdentity as {
+      id?: string
+      app_metadata?: Record<string, unknown>
+      provider_identities?: Array<{ provider: string; user_metadata?: Record<string, unknown> }>
+    }
+    const entityIdKey = `${actor_type}_id`
+    const entityId = (identity?.app_metadata?.[entityIdKey] as string) ?? ""
+    const providerIdentity = auth_provider
+      ? identity?.provider_identities?.find((pi) => pi.provider === auth_provider)
+      : undefined
+    const tokenPayload = {
+      actor_id: entityId,
+      actor_type: actor_type,
+      auth_identity_id: identity?.id ?? "",
+      app_metadata: { [entityIdKey]: entityId },
+      user_metadata: providerIdentity?.user_metadata ?? {},
+    }
+    const token = generateJwtToken(tokenPayload, {
+      secret: config.projectConfig.http.jwtSecret,
+      expiresIn: config.projectConfig.http.jwtExpiresIn ?? (config.projectConfig.http.jwtOptions as { expiresIn?: string })?.expiresIn ?? "7d",
+      jwtOptions: config.projectConfig.http.jwtOptions ?? {},
+    })
     return res.status(200).json({ token })
   }
   return res.status(401).json({
