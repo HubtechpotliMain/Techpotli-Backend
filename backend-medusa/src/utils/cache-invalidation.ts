@@ -12,13 +12,17 @@ export type ScopeLike = {
   resolve<T>(key: string): T
 }
 
+interface CachingClear {
+  clear(options: { key: string }): Promise<void>
+}
+
 /**
  * Invalidates the storefront hero banners cache so the next GET /store/hero-banners
  * will hit the DB and repopulate the cache. Call after admin create/update/delete/batch.
  */
 export async function invalidateHeroBannersCache(scope: ScopeLike): Promise<void> {
   try {
-    const caching = scope.resolve(Modules.CACHING)
+    const caching = scope.resolve<CachingClear>(Modules.CACHING)
     await caching.clear({ key: HERO_BANNERS_CACHE_KEY })
   } catch {
     // Caching module not registered (e.g. no CACHE_REDIS_URL) — no-op
