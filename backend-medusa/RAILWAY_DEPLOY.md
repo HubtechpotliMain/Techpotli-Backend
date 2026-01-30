@@ -10,6 +10,30 @@ If deploy **build** succeeds but **runtime** crashes with this error, Nixpacks i
 
 If Railway doesn’t show a Builder option, having a **Dockerfile** in the service root (`backend-medusa/`) usually makes Railway use it automatically. Keep **Root Directory** = `backend-medusa`.
 
+## Root URL (/) and admin dashboard
+
+**Root URL redirects to admin:** A `GET /` route redirects to `/app`, so you can share a single URL with your team:
+
+- **Share this:** `https://techpotli-backend-production-3972.up.railway.app/`  
+- Anyone opening it is redirected to `/app` (login/dashboard).
+
+You can still use `/app` or `/health` directly.
+
+## “Application failed to respond” when opening the Railway link
+
+If the deploy shows **“Server is ready on port …”** but opening the Railway URL shows **“Application failed to respond”**:
+
+1. **Use the right URL**  
+   The root URL `https://YOUR-RAILWAY-URL/` now redirects to `/app`. You can also use:
+   - **Health:** `https://YOUR-RAILWAY-URL.up.railway.app/health`
+   - **Admin:** `https://YOUR-RAILWAY-URL.up.railway.app/app`
+
+2. **Give Railway a public URL**  
+   In Railway: your **backend-medusa** service → **Settings** → **Networking** → **Generate Domain**. Use that URL as the base.
+
+3. **Check runtime logs**  
+   If it still fails, open **Deployments** → latest → **View Logs** (runtime) and look for errors when you open the link.
+
 ## Healthcheck and start command
 
 - **Healthcheck path:** `/health` — the app exposes `GET /health` (returns 200) for Railway’s healthcheck.
