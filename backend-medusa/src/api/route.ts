@@ -1,9 +1,13 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
+import { getAdminLandingHtml } from "./views/admin-landing";
 
 /**
- * GET / — Redirect to the admin dashboard so the main URL opens the login/dashboard.
- * Share one URL with the team: https://your-backend.up.railway.app/
+ * GET / — Techpotli Admin landing page (entry point for admin users only).
+ * Public, informational. No auth, no DB, no heavy middleware. Sub-100ms.
+ * CTA "Login to Dashboard" redirects to /app (Medusa Admin).
  */
 export async function GET(_req: MedusaRequest, res: MedusaResponse) {
-  res.redirect(302, "/app");
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=60");
+  res.status(200).send(getAdminLandingHtml());
 }
