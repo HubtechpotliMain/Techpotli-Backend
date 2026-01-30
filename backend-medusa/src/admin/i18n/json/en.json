@@ -1,0 +1,19 @@
+{
+  "login": {
+    "title": "Techpotli Admin Panel",
+    "hint": "Secure access to your enterprise ecommerce management system",
+    "forgotPassword": "Forgot password? - <0>Reset</0>"
+  },
+  "invite": {
+    "title": "Welcome to Techpotli",
+    "successHint": "Get started with Techpotli Admin right away.",
+    "successAction": "Start Techpotli Admin"
+  },
+  "actions": {
+    "continueWithEmail": "Login to Dashboard"
+  },
+  "fields": {
+    "email": "Email",
+    "password": "Password"
+  }
+}
