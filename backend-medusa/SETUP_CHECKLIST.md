@@ -1,10 +1,13 @@
-# Email Verification Setup Checklist
+# Email Verification & Admin Notifications Setup Checklist
 
 ## ✅ Code Implementation Status
 
 All code files have been created and are ready:
 
 - ✅ Email Verification Service (`src/services/email-verification.ts`)
+- ✅ Resend Notification Provider (`src/modules/resend/`) – admin password reset & invite emails
+- ✅ Password Reset Subscriber (`src/subscribers/password-reset.ts`) – `auth.password_reset`
+- ✅ Invite Created Subscriber (`src/subscribers/invite-created.ts`) – `invite.created`
 - ✅ Token Utility (`src/utils/verification-token.ts`)
 - ✅ Customer Created Subscriber (`src/subscribers/customer-created.ts`)
 - ✅ Verification API Endpoint (`src/api/auth/verify-email/route.ts`)
@@ -13,6 +16,11 @@ All code files have been created and are ready:
 - ✅ Frontend Signup Update (`Frontend/.../src/lib/data/customer.ts`)
 - ✅ Verification Banner Component (`Frontend/.../src/modules/account/components/verification-banner/index.tsx`)
 - ✅ Account Layout Update (`Frontend/.../src/modules/account/templates/account-layout.tsx`)
+- ✅ Users & Developer access guard – only emails in ALLOWED_SETTINGS_ACCESS_EMAILS (env) or users with `metadata.can_access_users_developer` can access **Users** and **Developer** (no email in code)
+- ✅ GET `/admin/custom/me-permissions` – returns `{ can_access_users_developer }` so the dashboard can hide Users/Developer menu
+- ✅ Admin widget `settings-access-gate.tsx` – shows “Access restricted” message on Users / API Keys / Workflows pages when the admin has no permission (backend still returns 403 for API calls)
+- ✅ PATCH `/admin/custom/users/:id/settings-access` – grant/revoke Users & Developer access (body: `{ can_access_users_developer: true | false }`)
+- ✅ Invite accepted subscriber (`src/subscribers/invite-accepted.ts`) – copies `invite.metadata.can_access_users_developer` to the new user when they accept
 
 ## 🔧 Required Environment Variables
 
@@ -22,8 +30,10 @@ Add these to your `.env` file in `Backend/backend-medusa/`:
 # Resend API Key (REQUIRED)
 RESEND_API_KEY=re_xxxxxxxxxxxxx
 
-# Email Configuration
+# Email Configuration (customer verification + admin notifications)
 EMAIL_FROM=noreply@techpotli.com
+# Optional: used by notification module for admin emails (password reset, invites). Defaults to EMAIL_FROM.
+RESEND_FROM_EMAIL=noreply@techpotli.com
 
 # URLs (Update for production)
 BACKEND_URL=http://localhost:9000
@@ -31,6 +41,10 @@ FRONTEND_URL=http://localhost:3000
 
 # JWT Secret (should already exist)
 JWT_SECRET=your-secret-key-here
+
+# REQUIRED for primary admin: emails that can access Users & Developer (no email is hardcoded in code for security)
+# Comma-separated. Set your admin email(s) here; others can be granted via user metadata.
+# ALLOWED_SETTINGS_ACCESS_EMAILS=your-admin@company.com
 ```
 
 **For Frontend** (`Frontend/nextjs-starter-medusa/.env.local`):
@@ -80,6 +94,19 @@ MEDUSA_BACKEND_URL=http://localhost:9000
 - Verify `EMAIL_FROM` domain is verified in Resend dashboard
 - Check backend logs for errors
 - Ensure subscriber is registered (check Medusa logs on startup)
+
+### Issue: Admin password reset or invite email not sent
+**Solution:**
+- Ensure the **notification module** is configured in `medusa-config.ts` with the Resend provider (see `@medusajs/medusa/notification` and `./src/modules/resend`).
+- Set `RESEND_API_KEY` and `RESEND_FROM_EMAIL` (or `EMAIL_FROM`). Same Resend key/from as customer verification.
+- Check backend logs for "Processing auth.password_reset" or "Processing invite.created" and any Resend errors.
+- Verify `BACKEND_URL` is correct so reset/invite links point to your admin (e.g. `BACKEND_URL/app/reset-password`).
+
+### Issue: Admin gets 403 when opening Users or Developer section
+**Solution:**
+- Only emails in ALLOWED_SETTINGS_ACCESS_EMAILS (set in .env) and users with `can_access_users_developer: true` in user metadata can access **Users** and **Developer**.
+- Add the admin’s user ID to `To grant access: call` `PATCH /admin/custom/users/:id/settings-access` with body `{ can_access_users_developer: true }`, or when inviting send `metadata: { can_access_users_developer: true }`.
+- The admin widget `settings-access-gate` shows an “Access restricted” message on Users, API Keys, and Workflows pages when the admin has no permission; the backend still returns 403 for those API calls. To hide the menu items entirely you would need to call `GET /admin/custom/me-permissions` and conditionally hide the sidebar entries (Medusa admin does not expose a built-in way to filter core menu items).
 
 ### Issue: Login endpoint returns 404
 **Solution:**
