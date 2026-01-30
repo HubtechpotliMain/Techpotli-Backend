@@ -1,6 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { HERO_BANNER_MODULE } from "../../../../modules/hero-banner"
 import HeroBannerService from "../../../../modules/hero-banner/service"
+import { invalidateHeroBannersCache } from "../../../../utils/cache-invalidation"
 
 /**
  * GET /admin/hero-banners/:id
@@ -84,6 +85,7 @@ export async function PATCH(
 
     const banner = await heroBannerService.updateBanner(id, updateData)
 
+    await invalidateHeroBannersCache(req.scope)
     res.json({ banner })
   } catch (error) {
     res.status(500).json({
@@ -110,6 +112,7 @@ export async function DELETE(
 
     await heroBannerService.deleteBanner(id)
 
+    await invalidateHeroBannersCache(req.scope)
     res.status(200).json({ message: "Hero banner deleted successfully" })
   } catch (error) {
     res.status(500).json({

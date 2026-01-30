@@ -1,6 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { HERO_BANNER_MODULE } from "../../../modules/hero-banner"
 import HeroBannerService from "../../../modules/hero-banner/service"
+import { invalidateHeroBannersCache } from "../../../utils/cache-invalidation"
 
 /**
  * GET /admin/hero-banners
@@ -78,6 +79,7 @@ export async function POST(
       sort_order,
     })
 
+    await invalidateHeroBannersCache(req.scope)
     res.status(201).json({ banner })
   } catch (error) {
     res.status(500).json({

@@ -1,6 +1,7 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { HERO_BANNER_MODULE } from "../../../../modules/hero-banner"
 import HeroBannerService from "../../../../modules/hero-banner/service"
+import { invalidateHeroBannersCache } from "../../../../utils/cache-invalidation"
 
 /**
  * PATCH /admin/hero-banners/batch
@@ -46,6 +47,7 @@ export async function PATCH(
 
     const banners = await heroBannerService.reorderBanners(orders)
 
+    await invalidateHeroBannersCache(req.scope)
     res.json({ banners })
   } catch (error) {
     res.status(500).json({
