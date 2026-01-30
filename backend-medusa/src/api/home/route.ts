@@ -1,10 +1,10 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http";
-import { getAdminLandingHtml } from "./views/admin-landing";
+import { getAdminLandingHtml } from "../views/admin-landing";
 
 /**
- * GET / — Not registered: Medusa's route sorter drops matcher "/".
- * Landing is served at GET /home; GET / redirects there via src/api/middlewares.ts.
- * This file kept for reference; actual handler is src/api/home/route.ts.
+ * GET /home — Techpotli Admin landing page.
+ * Used because Medusa's route sorter drops matcher "/" (empty segments).
+ * Root "/" redirects here via src/api/middlewares.ts.
  */
 export async function GET(_req: MedusaRequest, res: MedusaResponse) {
   res.setHeader("Content-Type", "text/html; charset=utf-8");

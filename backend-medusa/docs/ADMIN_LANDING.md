@@ -1,15 +1,15 @@
-# Admin Landing Page (GET "/") — Architecture
+# Admin Landing Page — Architecture
 
 ## 1. Analysis summary
 
-- **Folder structure**: Medusa v2 file-based API routes live under `src/api/`. Path is derived from directory: `src/api/route.ts` → `/`, `src/api/health/route.ts` → `/health`, `src/api/mn.png/route.ts` → `/mn.png`.
-- **Existing routes**: `/` (landing), `/health`, `/mn.png`, plus `/admin/*`, `/store/*`, `/auth/*`, `/webhooks/*`. No Medusa config or core changes.
-- **Public assets**: No built-in static mount for `public/`. Logo is served via a TypeScript route `GET /mn.png` that streams `public/mn.png` with caching.
-- **"/" handling**: Implemented in `src/api/route.ts`. Load order: express → admin (/app) → API loader (registers our GET /). `/app` and store/admin APIs are untouched.
+- **Folder structure**: Medusa v2 file-based API routes live under `src/api/`. Path is derived from directory: `src/api/health/route.ts` → `/health`, `src/api/home/route.ts` → `/home`, `src/api/mn.png/route.ts` → `/mn.png`.
+- **Root path "/"**: The framework’s route sorter drops the matcher `"/"` (empty segments), so `GET /` is never registered. The landing is served at **GET /home** and **GET /** redirects to `/home` via `src/api/middlewares.ts`.
+- **Existing routes**: `/home` (landing), `/health`, `/mn.png`, plus `/admin/*`, `/store/*`, `/auth/*`, `/webhooks/*`.
+- **Public assets**: Logo at `public/mn.png` served by `GET /mn.png`.
 
 ## 2. Where this feature fits
 
-- **Routing**: Stays in `src/api/route.ts` (Medusa convention: one `route.ts` per path).
+- **Routing**: Landing at **GET /home** (`src/api/home/route.ts`). Root **GET /** redirects to `/home` via `src/api/middlewares.ts` (matcher `/` is dropped by the framework).
 - **View/template**: Isolated in `src/api/views/admin-landing.ts` so the route stays thin and the template is TypeScript-owned (no loose HTML files).
 - **Static asset**: Logo at `public/mn.png` served by `src/api/mn.png/route.ts` (unchanged).
 
@@ -17,7 +17,10 @@
 
 ```
 src/api/
-  route.ts              # GET / — thin handler, delegates to view
+  middlewares.ts        # Redirect GET / → /home
+  home/
+    route.ts            # GET /home — landing HTML (thin handler, delegates to view)
+  route.ts              # GET / (not registered by framework; kept for reference)
   views/
     admin-landing.ts    # getAdminLandingHtml() — template + inline CSS
   mn.png/
@@ -33,10 +36,12 @@ public/
 
 | File | Role |
 |------|------|
-| `src/api/views/admin-landing.ts` | **Create** — view: `getAdminLandingHtml()`, inline CSS, copy (title, subtitle, CTA). |
-| `src/api/route.ts` | **Modify** — import view, set `Content-Type` + `Cache-Control`, send HTML. No inline HTML. |
-| `src/api/mn.png/route.ts` | **Unchanged** — logo stream, `Cache-Control: public, max-age=86400`. |
-| `docs/ADMIN_LANDING.md` | **Create** — this doc. |
+| `src/api/views/admin-landing.ts` | View: `getAdminLandingHtml()`, inline CSS, copy (title, subtitle, CTA). |
+| `src/api/home/route.ts` | **GET /home** — thin handler, sends landing HTML. |
+| `src/api/middlewares.ts` | Redirect **GET /** → `/home` so root shows the landing. |
+| `src/api/route.ts` | GET / (not registered; framework sorter drops "/"). |
+| `src/api/mn.png/route.ts` | Logo stream, `Cache-Control: public, max-age=86400`. |
+| `docs/ADMIN_LANDING.md` | This doc. |
 
 ## 5. Performance and safety
 
