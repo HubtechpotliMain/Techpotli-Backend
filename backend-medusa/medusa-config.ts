@@ -59,6 +59,29 @@ module.exports = defineConfig({
     },
   },
   modules: [
+    // Redis cache for storefront (optional: set CACHE_REDIS_URL in production)
+    ...(process.env.CACHE_REDIS_URL
+      ? [
+          {
+            resolve: "@medusajs/medusa/caching",
+            options: {
+              providers: [
+                {
+                  resolve: "@medusajs/caching-redis",
+                  id: "caching-redis",
+                  is_default: true,
+                  options: {
+                    redisUrl: process.env.CACHE_REDIS_URL,
+                    ttl: 300,
+                    prefix: "techpotli:",
+                    compressionThreshold: 2048,
+                  },
+                },
+              ],
+            },
+          },
+        ]
+      : []),
     {
       resolve: "@medusajs/medusa/file",
       options: {
