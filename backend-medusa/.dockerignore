@@ -1,0 +1,25 @@
+# Dependencies and env (installed/built in image).
+node_modules
+.env
+.env.*
+!.env.example
+
+# Git and IDE.
+.git
+.gitignore
+.idea
+.vscode
+
+# Build outputs (created by `npm run build` in container; do not overwrite from host).
+.medusa
+dist
+build
+.cache
+coverage
+
+# Misc.
+.DS_Store
+uploads
+*.log
+*.sql
+*.tgz
