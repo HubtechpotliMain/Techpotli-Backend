@@ -14,6 +14,34 @@
   },
   "fields": {
     "email": "Email",
-    "password": "Password"
+    "password": "Password",
+    "handle": "Product URL",
+    "priceTemplate": "Selling Price {{regionOrCurrency}}",
+    "mrpPriceTemplate": "MRP (Original Price) {{regionOrCurrency}}"
+  },
+  "products": {
+    "create": {
+      "pricing": {
+        "sellingPriceHint": "Final price customers pay",
+        "originalPriceMrpHint": "Shown as crossed price on the website. Selling price is the main price customers pay."
+      }
+    },
+    "fields": {
+      "title": {
+        "label": "Product Title"
+      },
+      "subtitle": {
+        "label": "Product Subtitle"
+      },
+      "description": {
+        "label": "Product Description"
+      },
+      "handle": {
+        "label": "Product URL"
+      }
+    },
+    "media": {
+      "label": "Product Media"
+    }
   }
 }
